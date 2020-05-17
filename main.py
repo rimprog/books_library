@@ -40,11 +40,15 @@ def get_book_info(url):
 
     comments = [comment_tag.find('span').text for comment_tag in soup.find_all(class_='texts')]
 
+    genres_tags = soup.find('span', class_='d_book').find_all('a')
+    genres = [genre_tag.text for genre_tag in genres_tags]
+
     book_info = {
         'title_text': title_text,
         'author': author,
         'image_url': image_url,
-        'comments': comments
+        'comments': comments,
+        'genres': genres
     }
 
     return book_info
