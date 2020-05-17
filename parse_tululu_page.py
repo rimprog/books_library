@@ -29,18 +29,26 @@ def get_book_info(url):
 
     soup = BeautifulSoup(response.text, 'lxml')
 
-    h1_tag = soup.find('h1')
+    h1_tag = soup.select_one('h1')
 
     title_text, author = h1_tag.text.split('::')
     title_text = sanitize_filename(title_text.strip())
     author = sanitize_filename(author.strip())
 
-    img_src = soup.find(class_='bookimage').find('img')['src']
-    image_url = urljoin(url, img_src)
+    image_tag_selector = '.bookimage img[src]'
+    image_tag = soup.select_one(image_tag_selector)
+    image_src = image_tag.get('src')
+    image_url = urljoin(url, image_src)
 
-    comments = [comment_tag.find('span').text for comment_tag in soup.find_all(class_='texts')]
+    # comments = [comment_tag.find('span').text for comment_tag in soup.find_all(class_='texts')]
+    comments_tags_selector = '.texts span'
+    comments_tags = soup.select(comments_tags_selector)
+    comments = [comment_tag.text for comment_tag in comments_tags]
 
-    genres_tags = soup.find('span', class_='d_book').find_all('a')
+    # genres_tags = soup.find('span', class_='d_book').find_all('a')
+    # genres = [genre_tag.text for genre_tag in genres_tags]
+    genres_tags_selector = 'span.d_book a'
+    genres_tags = soup.select(genres_tags_selector)
     genres = [genre_tag.text for genre_tag in genres_tags]
 
     book_info = {

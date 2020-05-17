@@ -19,8 +19,9 @@ def parse_category(category_url, start_id, end_id):
 
         soup = BeautifulSoup(response.text, 'lxml')
 
-        images_tags = soup.find_all(class_='bookimage')
-        books_hrefs = [image_tag.find('a').get('href') for image_tag in images_tags]
+        books_a_tag_selector = '.bookimage a[href]'
+        books_a_tags = soup.select(books_a_tag_selector)
+        books_hrefs = [book_a_tag.get('href') for book_a_tag in books_a_tags]
 
         books_page_urls = [urljoin('http://tululu.org', book_href) for book_href in books_hrefs]
 
