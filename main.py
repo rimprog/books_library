@@ -36,9 +36,18 @@ def get_book_info(url):
     author = sanitize_filename(author.strip())
 
     img_src = soup.find(class_='bookimage').find('img')['src']
-    bookimage_url = urljoin(url, img_src)
+    image_url = urljoin(url, img_src)
 
-    return title_text, author, bookimage_url
+    comments = [comment_tag.find('span').text for comment_tag in soup.find_all(class_='texts')]
+
+    book_info = {
+        'title_text': title_text,
+        'author': author,
+        'image_url': image_url,
+        'comments': comments
+    }
+
+    return book_info
 
 
 def save_text_file_to_folder(text_file, filename, folder_path):
@@ -72,15 +81,15 @@ def main():
             continue
 
         book_info_url = os.path.join(base_url, 'b{}/'.format(book_id))
-        title_text, author, bookimage_url = get_book_info(book_info_url)
-        book_name = '{}. {}.txt'.format(book_id, title_text)
+        book_info = get_book_info(book_info_url)
+        book_name = '{}. {}.txt'.format(book_id, book_info['title_text'])
 
         books_path = os.path.join(MEDIA_URL, 'books', '')
         save_text_file_to_folder(book_text, book_name, books_path)
 
         book_image_path = os.path.join(MEDIA_URL, 'images', '')
-        image_name = bookimage_url.split('/')[-1]
-        download_image(bookimage_url, image_name, book_image_path)
+        image_name = book_info['image_url'].split('/')[-1]
+        download_image(book_info['image_url'], image_name, book_image_path)
 
 
 if __name__ == '__main__':
