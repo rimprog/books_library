@@ -40,13 +40,10 @@ def get_book_info(url):
     image_src = image_tag.get('src')
     image_url = urljoin(url, image_src)
 
-    # comments = [comment_tag.find('span').text for comment_tag in soup.find_all(class_='texts')]
     comments_tags_selector = '.texts span'
     comments_tags = soup.select(comments_tags_selector)
     comments = [comment_tag.text for comment_tag in comments_tags]
 
-    # genres_tags = soup.find('span', class_='d_book').find_all('a')
-    # genres = [genre_tag.text for genre_tag in genres_tags]
     genres_tags_selector = 'span.d_book a'
     genres_tags = soup.select(genres_tags_selector)
     genres = [genre_tag.text for genre_tag in genres_tags]

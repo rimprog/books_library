@@ -1,5 +1,6 @@
 import os
 import json
+import argparse
 from urllib.parse import urljoin
 
 import requests
@@ -32,12 +33,27 @@ def parse_category(category_url, start_id, end_id):
 
 
 def main():
+    parser = argparse.ArgumentParser(
+        description='This script parse books from categories pages on tululu.org website'
+    )
+    parser.add_argument(
+        '--start_page',
+        default=1,
+        help='Input id of start page books in category'
+    )
+    parser.add_argument(
+        '--end_page',
+        default=701,
+        help='Input id of end page books in category'
+    )
+    args = parser.parse_args()
+
     base_url = 'http://tululu.org'
     category_path_url = 'l55'
     category_url = os.path.join(base_url, category_path_url)
 
-    start_id = 1
-    end_id = 4
+    start_id = int(args.start_page)
+    end_id = int(args.end_page)
     books_urls = parse_category(category_url, start_id, end_id)
 
     book_download_url = os.path.join(base_url, 'txt.php')
@@ -62,10 +78,14 @@ def main():
         image_name = book_info['image_url'].split('/')[-1]
         download_image(book_info['image_url'], image_name, book_image_path)
 
-        book_info['book_path'] = os.path.join(books_path, book_name)
+        book_path = os.path.join(books_path, book_name)
+        book_info['book_path'] = book_path
         books_description.append(book_info)
 
-    with open("books_description.json", "w", encoding='utf8') as my_file:
+        print(book_path)
+
+    books_description_path = os.path.join(MEDIA_URL, 'books_description.json')
+    with open(books_description_path, "w", encoding='utf8') as my_file:
         json.dump(books_description, my_file, ensure_ascii=False)
 
 
