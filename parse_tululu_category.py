@@ -29,6 +29,9 @@ def get_book_info(url):
     response = requests.get(url)
     response.raise_for_status()
 
+    if response.status_code == 302:
+        return None
+
     soup = BeautifulSoup(response.text, 'lxml')
 
     h1_tag = soup.select_one('h1')
@@ -73,6 +76,9 @@ def download_image(url, filename, folder_path):
     response = requests.get(url)
     response.raise_for_status()
 
+    if response.status_code == 302:
+        return None
+
     Path(folder_path).mkdir(parents=True, exist_ok=True)
 
     file_path = os.path.join(folder_path, filename)
@@ -87,6 +93,9 @@ def parse_category(category_url, start_id, end_id):
 
         response = requests.get(category_page_url)
         response.raise_for_status()
+
+        if response.status_code == 302:
+            return None
 
         soup = BeautifulSoup(response.text, 'lxml')
 
@@ -138,6 +147,7 @@ def main():
         default=MEDIA_URL,
         help='path to books description json file'
     )
+
     args = parser.parse_args()
 
     base_url = 'http://tululu.org'
