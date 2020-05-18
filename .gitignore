@@ -5,3 +5,4 @@ __pycache__
 media/
 
 bs4_tutorial.py
+parse_tululu_page.py
