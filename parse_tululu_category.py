@@ -1,6 +1,7 @@
 import os
 import json
 import argparse
+from pathlib import Path
 from urllib.parse import urljoin
 
 import requests
@@ -38,13 +39,35 @@ def main():
     )
     parser.add_argument(
         '--start_page',
+        type=int,
         default=1,
-        help='Input id of start page books in category'
+        help='id of start page books in category'
     )
     parser.add_argument(
         '--end_page',
+        type=int,
         default=701,
-        help='Input id of end page books in category'
+        help='id of end page books in category'
+    )
+    parser.add_argument(
+        '--dest_folder',
+        default=MEDIA_URL,
+        help='path to result of parsing'
+    )
+    parser.add_argument(
+        '--skip_imgs',
+        action='store_true',
+        help='option to allow skip download book\'s images'
+    )
+    parser.add_argument(
+        '--skip_txt',
+        action='store_true',
+        help='option to allow skip download book\'s text'
+    )
+    parser.add_argument(
+        '--json_path',
+        default=MEDIA_URL,
+        help='path to books description json file'
     )
     args = parser.parse_args()
 
@@ -62,21 +85,24 @@ def main():
 
     book_ids = [books_url.split('/b')[-1][:-1] for books_url in books_urls]
     for book_id in book_ids:
-        book_text = get_book_text(book_download_url, book_id)
+        if not args.skip_txt:
+            book_text = get_book_text(book_download_url, book_id)
 
-        if book_text == None:
-            continue
+            if book_text == None:
+                continue
 
         book_info_url = os.path.join(base_url, 'b{}/'.format(book_id))
         book_info = get_book_info(book_info_url)
         book_name = '{}. {}.txt'.format(book_id, book_info['title_text'])
 
-        books_path = os.path.join(MEDIA_URL, 'books', '')
-        save_text_file_to_folder(book_text, book_name, books_path)
+        books_path = os.path.join(args.dest_folder, 'books', '')
+        if not args.skip_txt:
+            save_text_file_to_folder(book_text, book_name, books_path)
 
-        book_image_path = os.path.join(MEDIA_URL, 'images', '')
-        image_name = book_info['image_url'].split('/')[-1]
-        download_image(book_info['image_url'], image_name, book_image_path)
+        if not args.skip_imgs:
+            book_image_path = os.path.join(args.dest_folder, 'images', '')
+            image_name = book_info['image_url'].split('/')[-1]
+            download_image(book_info['image_url'], image_name, book_image_path)
 
         book_path = os.path.join(books_path, book_name)
         book_info['book_path'] = book_path
@@ -84,7 +110,8 @@ def main():
 
         print(book_path)
 
-    books_description_path = os.path.join(MEDIA_URL, 'books_description.json')
+    Path(args.json_path).mkdir(parents=True, exist_ok=True)
+    books_description_path = os.path.join(args.json_path, 'books_description.json')
     with open(books_description_path, "w", encoding='utf8') as my_file:
         json.dump(books_description, my_file, ensure_ascii=False)
 
