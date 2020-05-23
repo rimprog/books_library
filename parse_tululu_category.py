@@ -161,7 +161,7 @@ def download_image(url, filename, folder_path):
 def parse_category(category_url, start_id, end_id):
     books_urls = []
     for page_id in range(start_id, end_id + 1):
-        category_page_url = os.path.join(category_url, '{}'.format(page_id))
+        category_page_url = os.path.join(category_url, str(page_id))
 
         response = requests.get(category_page_url)
         response.raise_for_status()
@@ -177,8 +177,7 @@ def parse_category(category_url, start_id, end_id):
 
         books_page_urls = [urljoin('http://tululu.org', book_href) for book_href in books_hrefs]
 
-        for book_page_url in books_page_urls:
-            books_urls.append(book_page_url)
+        books_urls.extend(books_page_urls)
 
     return books_urls
 
@@ -187,7 +186,7 @@ def parse_book_page(book_id, base_url, book_download_url, args):
     if not args.skip_txt:
         book_text = get_book_text(book_download_url, book_id)
 
-        if book_text == None:
+        if book_text is None:
             raise Exception('No text to download')
 
     book_info_url = os.path.join(base_url, 'b{}/'.format(book_id))
