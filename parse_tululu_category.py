@@ -64,6 +64,26 @@ def get_book_info(url):
     return book_info
 
 
+def get_pages_count(url):
+    response = requests.get(url)
+    response.raise_for_status()
+
+    if response.status_code == 302:
+        return None
+
+    soup = BeautifulSoup(response.text, 'lxml')
+
+    paginator_last_element_selector = 'a:last-child.npage'
+    paginator_last_element = soup.select_one(paginator_last_element_selector)
+
+    try:
+        category_pages_count = paginator_last_element.text
+    except AttributeError:
+        category_pages_count = 1
+
+    return category_pages_count
+
+
 def save_text_file_to_folder(text_file, filename, folder_path):
     Path(folder_path).mkdir(parents=True, exist_ok=True)
 
@@ -112,6 +132,10 @@ def parse_category(category_url, start_id, end_id):
 
 
 def main():
+    base_url = 'http://tululu.org'
+    category_path_url = 'l55'
+    category_url = os.path.join(base_url, category_path_url)
+
     parser = argparse.ArgumentParser(
         description='This script parse books from categories pages on tululu.org website'
     )
@@ -124,7 +148,7 @@ def main():
     parser.add_argument(
         '--end_page',
         type=int,
-        default=701,
+        default=get_pages_count(category_url),
         help='id of end page books in category'
     )
     parser.add_argument(
@@ -149,10 +173,6 @@ def main():
     )
 
     args = parser.parse_args()
-
-    base_url = 'http://tululu.org'
-    category_path_url = 'l55'
-    category_url = os.path.join(base_url, category_path_url)
 
     start_id = int(args.start_page)
     end_id = int(args.end_page)
