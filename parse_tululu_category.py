@@ -175,7 +175,7 @@ def parse_category(category_url, start_id, end_id):
         books_a_tags = soup.select(books_a_tag_selector)
         books_hrefs = [book_a_tag.get('href') for book_a_tag in books_a_tags]
 
-        books_page_urls = [urljoin('http://tululu.org', book_href) for book_href in books_hrefs]
+        books_page_urls = [urljoin(category_page_url, book_href) for book_href in books_hrefs]
 
         books_urls.extend(books_page_urls)
 
