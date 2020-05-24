@@ -10,6 +10,7 @@ import requests
 from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
 from pathvalidate import sanitize_filepath
+from tqdm import tqdm
 
 
 MEDIA_URL = os.path.join("media",'')
@@ -217,8 +218,6 @@ def parse_book_page(book_id, base_url, book_download_url, args):
     book_path = os.path.join(books_path, book_name)
     book_info['book_path'] = book_path
 
-    print(book_path)
-
     return book_info
 
 
@@ -243,7 +242,7 @@ def main():
     books_ids = get_books_ids(books_urls)
 
     books_description = []
-    for book_id in books_ids:
+    for book_id in tqdm(books_ids):
         try:
             book_info = parse_book_page(book_id, base_url, book_download_url, args)
         except Exception as err:
