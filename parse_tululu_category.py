@@ -1,6 +1,8 @@
 import os
+import sys
 import json
 import argparse
+import logging
 from pathlib import Path
 from urllib.parse import urljoin
 
@@ -53,6 +55,30 @@ def configurate_argparse(get_pages_count, category_url):
     return parser
 
 
+def parse_category(category_url, start_id, end_id):
+    books_urls = []
+    for page_id in range(start_id, end_id + 1):
+        category_page_url = os.path.join(category_url, str(page_id))
+
+        response = requests.get(category_page_url, allow_redirects=False)
+        response.raise_for_status()
+
+        if response.status_code in [301, 302]:
+            raise Exception(F'Wrong category page: {response.url}. Please check your start_page and end_page command line args')
+
+        soup = BeautifulSoup(response.text, 'lxml')
+
+        books_a_tag_selector = '.bookimage a[href]'
+        books_a_tags = soup.select(books_a_tag_selector)
+        books_hrefs = [book_a_tag.get('href') for book_a_tag in books_a_tags]
+
+        books_page_urls = [urljoin(category_page_url, book_href) for book_href in books_hrefs]
+
+        books_urls.extend(books_page_urls)
+
+    return books_urls
+
+
 def get_books_ids(books_urls):
     books_ids = [book_url.split('/b')[-1][:-1] for book_url in books_urls]
 
@@ -65,18 +91,18 @@ def get_book_text(url, book_id):
     response = requests.get(url, params=payload, allow_redirects=False)
     response.raise_for_status()
 
-    if response.status_code == 302:
-        return None
+    if response.status_code in [301, 302]:
+        raise Exception('No text to download')
 
     return response.text
 
 
 def get_book_info(url):
-    response = requests.get(url)
+    response = requests.get(url, allow_redirects=False)
     response.raise_for_status()
 
-    if response.status_code == 302:
-        return None
+    if response.status_code in [301, 302]:
+        raise Exception('No book info')
 
     soup = BeautifulSoup(response.text, 'lxml')
 
@@ -117,11 +143,11 @@ def create_book_name(book_id, book_info):
 
 
 def get_pages_count(url):
-    response = requests.get(url)
+    response = requests.get(url, allow_redirects=False)
     response.raise_for_status()
 
-    if response.status_code == 302:
-        return None
+    if response.status_code in [301, 302]:
+        sys.exit('Can\'t get pages count. Please check your url')
 
     soup = BeautifulSoup(response.text, 'lxml')
 
@@ -145,11 +171,11 @@ def save_text_file_to_folder(text_file, filename, folder_path):
 
 
 def download_image(url, filename, folder_path):
-    response = requests.get(url)
+    response = requests.get(url, allow_redirects=False)
     response.raise_for_status()
 
-    if response.status_code == 302:
-        return None
+    if response.status_code in [301, 302]:
+        raise Exception('No image for download')
 
     Path(folder_path).mkdir(parents=True, exist_ok=True)
 
@@ -158,36 +184,9 @@ def download_image(url, filename, folder_path):
         file.write(response.content)
 
 
-def parse_category(category_url, start_id, end_id):
-    books_urls = []
-    for page_id in range(start_id, end_id + 1):
-        category_page_url = os.path.join(category_url, str(page_id))
-
-        response = requests.get(category_page_url)
-        response.raise_for_status()
-
-        if response.status_code == 302:
-            return None
-
-        soup = BeautifulSoup(response.text, 'lxml')
-
-        books_a_tag_selector = '.bookimage a[href]'
-        books_a_tags = soup.select(books_a_tag_selector)
-        books_hrefs = [book_a_tag.get('href') for book_a_tag in books_a_tags]
-
-        books_page_urls = [urljoin(category_page_url, book_href) for book_href in books_hrefs]
-
-        books_urls.extend(books_page_urls)
-
-    return books_urls
-
-
 def parse_book_page(book_id, base_url, book_download_url, args):
     if not args.skip_txt:
         book_text = get_book_text(book_download_url, book_id)
-
-        if book_text is None:
-            raise Exception('No text to download')
 
     book_info_url = os.path.join(base_url, 'b{}/'.format(book_id))
     book_info = get_book_info(book_info_url)
@@ -224,7 +223,7 @@ def save_books_description(books_description, args):
 def main():
     base_url = 'http://tululu.org'
     category_path_url = 'l55'
-    category_url = os.path.join(base_url, category_path_url)
+    category_url = os.path.join(base_url, category_path_url, '')
     book_download_url = os.path.join(base_url, 'txt.php')
 
     parser = configurate_argparse(get_pages_count, category_url)
@@ -237,7 +236,8 @@ def main():
     for book_id in books_ids:
         try:
             book_info = parse_book_page(book_id, base_url, book_download_url, args)
-        except Exception:
+        except Exception as err:
+            logging.error(err)
             continue
 
         books_description.append(book_info)
