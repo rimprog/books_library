@@ -170,6 +170,16 @@ def save_text_file_to_folder(text_file, filename, folder_path):
         file.write(text_file)
 
 
+def create_image_name(book_id, book_info):
+    image_name = '{}. {}.{}'.format(
+        book_id,
+        book_info['title_text'],
+        book_info['image_url'].split('/')[-1].split('.')[-1]
+    )
+
+    return image_name
+
+
 def download_image(url, filename, folder_path):
     response = requests.get(url, allow_redirects=False)
     response.raise_for_status()
@@ -198,7 +208,7 @@ def parse_book_page(book_id, base_url, book_download_url, args):
 
     if not args.skip_imgs:
         book_image_path = os.path.join(args.dest_folder, 'images', '')
-        image_name = book_info['image_url'].split('/')[-1]
+        image_name = create_image_name(book_id, book_info)
         download_image(book_info['image_url'], image_name, book_image_path)
 
     img_path = os.path.join(book_image_path, image_name)
