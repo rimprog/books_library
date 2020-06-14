@@ -13,9 +13,6 @@ from pathvalidate import sanitize_filepath
 from tqdm import tqdm
 
 
-MEDIA_URL = os.path.join("media",'')
-
-
 def configurate_argparse(get_pages_count, category_url):
     parser = argparse.ArgumentParser(
         description='This script parse books from categories pages on tululu.org website'
@@ -34,7 +31,7 @@ def configurate_argparse(get_pages_count, category_url):
     )
     parser.add_argument(
         '--dest_folder',
-        default=MEDIA_URL,
+        default='media',
         help='path to result of parsing'
     )
     parser.add_argument(
@@ -49,7 +46,7 @@ def configurate_argparse(get_pages_count, category_url):
     )
     parser.add_argument(
         '--json_path',
-        default=MEDIA_URL,
+        default='media',
         help='path to books description json file'
     )
 
@@ -203,12 +200,12 @@ def parse_book_page(book_id, base_url, book_download_url, args):
     book_info = get_book_info(book_info_url)
     book_name = create_book_name(book_id, book_info)
 
-    books_path = os.path.join(args.dest_folder, 'books', '')
+    books_path = os.path.join(args.dest_folder, 'books')
     if not args.skip_txt:
         save_text_file_to_folder(book_text, book_name, books_path)
 
     if not args.skip_imgs:
-        book_image_path = os.path.join(args.dest_folder, 'images', '')
+        book_image_path = os.path.join(args.dest_folder, 'images')
         image_name = create_image_name(book_id, book_info)
         download_image(book_info['image_url'], image_name, book_image_path)
 
