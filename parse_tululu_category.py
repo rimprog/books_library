@@ -56,7 +56,7 @@ def configurate_argparse(get_pages_count, category_url):
 def parse_category(category_url, start_id, end_id):
     books_urls = []
     for page_id in range(start_id, end_id + 1):
-        category_page_url = os.path.join(category_url, str(page_id))
+        category_page_url = urljoin(category_url, str(page_id))
 
         response = requests.get(category_page_url, allow_redirects=False)
         response.raise_for_status()
@@ -196,7 +196,7 @@ def parse_book_page(book_id, base_url, book_download_url, args):
     if not args.skip_txt:
         book_text = get_book_text(book_download_url, book_id)
 
-    book_info_url = os.path.join(base_url, 'b{}/'.format(book_id))
+    book_info_url = urljoin(base_url, 'b{}/'.format(book_id))
     book_info = get_book_info(book_info_url)
     book_name = create_book_name(book_id, book_info)
 
@@ -228,9 +228,9 @@ def save_books_description(books_description, args):
 
 def main():
     base_url = 'http://tululu.org'
-    category_path_url = 'l55'
-    category_url = os.path.join(base_url, category_path_url, '')
-    book_download_url = os.path.join(base_url, 'txt.php')
+    category_path_url = 'l55/'
+    category_url = urljoin(base_url, category_path_url)
+    book_download_url = urljoin(base_url, 'txt.php')
 
     parser = configurate_argparse(get_pages_count, category_url)
     args = parser.parse_args()
