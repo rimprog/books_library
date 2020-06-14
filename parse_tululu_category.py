@@ -134,12 +134,6 @@ def get_book_info(url):
     return book_info
 
 
-def create_book_name(book_id, book_info):
-    book_name = '{}. {}.txt'.format(book_id, book_info['title_text'])
-
-    return book_name
-
-
 def get_pages_count(url):
     response = requests.get(url, allow_redirects=False)
     response.raise_for_status()
@@ -198,7 +192,7 @@ def parse_book_page(book_id, base_url, book_download_url, args):
 
     book_info_url = urljoin(base_url, 'b{}/'.format(book_id))
     book_info = get_book_info(book_info_url)
-    book_name = create_book_name(book_id, book_info)
+    book_name = '{}. {}.txt'.format(book_id, book_info['title_text'])
 
     books_path = os.path.join(args.dest_folder, 'books')
     if not args.skip_txt:
